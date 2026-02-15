@@ -13,10 +13,10 @@ import matplotlib.pyplot as plt
 
 G = nx.DiGraph()
 G.add_weighted_edges_from([
-    ('s',1,16), ('s',2,13),
-    (1,3,12), (2,1,4), (2,4,14), (3,2,9), (4,3,7),
-    (3,5,20), (4,5,4),(5,6,9),
-    (6,'t',20), (4,'t',4)])
+    ('s',1,16),('s',2,13),
+    (1,3,12),(2,1,4),(2,4,14),(3,2,9),(4,3,7),
+    (3,5,20),(4,5,4),(5,6,9),
+    (6,'t',20),(4,6,4),(5,'t',20)])
 
 layers = [['s'],[1,2],[3,4],[5,6],['t']]
 Pos = {}
@@ -53,12 +53,12 @@ def is_input_correct(G,s,t):
 
 inf = float('inf')
 
-def Find_path(G,s,t):
+def Find_Mpath(G,s,t):
 
     vis = ['s']
     un_vis = list(G.nodes)
     un_vis.remove('s')
-    
+
     table = dict()
     Weights = nx.get_edge_attributes(G,'weight')
     
@@ -68,38 +68,42 @@ def Find_path(G,s,t):
     table['s'] = [inf,['s']]
         
 
-    while vis != list(G.nodes):
+    while un_vis != list(G.nodes):
         Max_node = [0,[None]]
         for i in vis:
-            if Max_node[0] < table[i][0]:
-                Max_node = i
+            if Max_node[0] <= table[i][0]:
+                Max_name = i
+                Max_node = table[i]
         if Max_node[0] == 0:
           break 
 
-                
-        neighbours = list(G.neighbors(Max_node))
-        for i in neighbours:
-            a = table[Max_node][0]
-            b = Weights[Max_node,i] 
-            print(a,b)
-            if min(table[Max_node][0],Weights[Max_node,i]) >= table[i][0]:
-                table[i] = [min(table[Max_node][0],Weights[Max_node,i]),table[i][1].append(i)]
+        print(Max_name)
+    #    print(Max_node)
         
-        new_node = [0,[None]]        
+        neighbours = list(G.neighbors(Max_name))
+        for i in neighbours:
+            if min(Max_node[0],Weights[Max_name,i]) >= table[i][0]:
+                path = Max_node[1]
+                table[i] = [min(table[Max_name][0],Weights[Max_name,i]), path+[i]]
+
+        new_node = [0,None]        
         for i in un_vis:
-          print(new_node[0])
-          print(table[i][0])
-          if new_node[0] <= table[i][0]:
+          if new_node[0] < table[i][0]:
             new_node = table[i]
-            
-        vis.append(new_node)
-        un_vis.remove(new_node)
+            node_name = i
 
-            
+        print(node_name)
+        print(un_vis)
+        vis.append(node_name)
 
+        print(table)   
 
+        for i in vis:
+          if set(G.neighbors(i)) in set(vis):
+            vis.append(i)
+            un_vis.remove(i) 
 
-Find_path(G,'s','t')
+Find_Mpath(G,'s','t')
 
 
 
