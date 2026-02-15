@@ -8,15 +8,15 @@ This is a temporary script file.
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
-
+inf = float('inf')
 
 
 G = nx.DiGraph()
 G.add_weighted_edges_from([
-    ('s',1,16), ('s',2,13),
-    (1,3,12), (2,1,4), (2,4,14), (3,2,9), (4,3,7),
-    (3,5,20), (4,5,4),(5,6,9),
-    (6,'t',20), (4,'t',4)])
+    ('s',1,16),('s',2,13),
+    (1,3,12),(2,1,4),(2,4,14),(3,2,9),(4,3,7),
+    (3,5,20),(4,5,4),(5,6,9),
+    (6,'t',0),(4,6,4),(5,'t',0)])
 
 layers = [['s'],[1,2],[3,4],[5,6],['t']]
 Pos = {}
@@ -25,7 +25,8 @@ for i, layer in enumerate(layers):
     for j, node in enumerate(layer):
         Pos[node] = (i,-j)
 
-nx.draw(G,Pos, with_labels=True,  arrows = 'True')
+nx.draw(G,Pos, with_labels=True,  arrows = True)
+
 
 
 # CHECKERS 
@@ -36,58 +37,67 @@ def is_input_correct(G,s,t):
         raise ValueError("Not a directed graph")
         
     if s not in list(G.nodes()):
-        raise ValueError("s Is not an element in V(G)")
+        raise ValueError("Source is not an element in V(G)")
         
     if t not in list(G.nodes()):
-        raise ValueError("t Is not an element in V(G)")   
+        raise ValueError("Sink is not an element in V(G)")   
         
     if t == s:
         raise ValueError("Source and Sink must be distinct") 
-        
-    if nx.is_weakly_connected(G) == False:
-        raise ValueError("G is not weakly connected")
     
     else:
         print("Input is correct")        
 
 
-inf = float('inf')
+# Finding Augmenting path 
 
-def Find_path(G,s,t):
 
-    vis = ['s']
-    un_vis = list(G.nodes)
-    un_vis.remove('s')
-    
-    table = dict()
-    Weights = nx.get_edge_attributes(G,'weight')
-    
+def Find_Max_Path(G,s,t):
+
+    vis = [s]
+    checking_variable = None
+
+    table = dict()                               # Creating a dictionary of the graph with additional attributes 
+    Weights = nx.get_edge_attributes(G,'weight') # Helpful having a dictionary of weights  
     for i in list(G.nodes):
         table[i] = [0,[]]
-        
-    table['s'] = [inf,['s']]
-        
-    while vis != list(G.nodes):
-        Max_cap = 0
-        Max_node = None
-        for i in vis:
-            if Max_cap < Weights[i]:
-                Max_cap = Weights[i]
-                Max_node = i 
-                
-        neighbours = list(G.neighbors[Max_node])
-        for i in neighbours:
-            if min[Weights[Max_node],Weights[Max_node,i]]>Weights[i]:
-                table[i] = [min[Weights[Max_node],Weights[Max_node,i]],table[i][1].append(i)]
-        
-                
-        for i in un_vis:
-            
-        
-    
-    
+    table[s] = [inf,[s]]
+
+    #while True:
+    for n in range(len(list(G.nodes))):
+      edges = []                            # list of all edges from vis_nodes ----> nodes 
+      for i in vis:
+        neighbours = list(G.neighbors(i))
+        for j in neighbours:
+          if j not in vis:
+            edges += [[i,j]]
+            if edges == []:
+              return False
+
+      cap = 0
+      for i in edges:
+        if cap < Weights[i[0],i[1]]:
+          cap = Weights[i[0],i[1]]
+          Max_edge = i
+          v = Max_edge[0]
+          w = Max_edge[1]
+      
+      table[w] = [min(table[v][0],Weights[v,w]),table[v][1]+[w]]
+      vis.append(w)
+      #print(table)
+
+      if table[t][0] != 0:
+        return table[t]          # Returing [Capacity of path,[path]]
+
+    return table    # When no augmenting path has been found  
 
 
-def Solve(G,s,t):
-    if is_input_correct(G,s,t) != "Input is correct" :
-        return is_input_correct(G,s,t)
+Find_Max_Path(G,'s','t')
+
+
+
+#def Solve(G,Source,Sink):
+#  s = Source
+#  t = Sink
+#  is_input_correct(G,s,t)
+  
