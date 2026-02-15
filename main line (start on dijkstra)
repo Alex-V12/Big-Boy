@@ -68,22 +68,23 @@ def Find_path(G,s,t):
     table['s'] = [inf,['s']]
         
     while vis != list(G.nodes):
-        Max_cap = 0
-        Max_node = None
+        Max_node = [0,[None]]
         for i in vis:
-            if Max_cap < Weights[i]:
-                Max_cap = Weights[i]
+            if Max_node[0] < table[i][0]:
                 Max_node = i 
                 
-        neighbours = list(G.neighbors[Max_node])
+        neighbours = list(G.neighbors(Max_node))
         for i in neighbours:
-            if min[Weights[Max_node],Weights[Max_node,i]]>Weights[i]:
-                table[i] = [min[Weights[Max_node],Weights[Max_node,i]],table[i][1].append(i)]
+            if min[Max_node[0],Weights[Max_node,i]] > table[i][0]:
+                table[i] = [min[Max_node[0],Weights[Max_node,i]],table[i][1].append(i)]
         
-                
+        new_node = [0,[None]]        
         for i in un_vis:
+          if new_node[0] < table[i][0]:
+            new_node = i
             
-        
+        vis.append(new_node)
+        un_vis.remove(new_node)
     
     
 
