@@ -8,7 +8,7 @@ This is a temporary script file.
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
-
+inf = float('inf')
 
 
 G = nx.DiGraph()
@@ -26,6 +26,7 @@ for i, layer in enumerate(layers):
         Pos[node] = (i,-j)
 
 nx.draw(G,Pos, with_labels=True,  arrows = True)
+
 
 
 # CHECKERS 
@@ -51,19 +52,20 @@ def is_input_correct(G,s,t):
         print("Input is correct")        
 
 
-inf = float('inf')
+# Finding Augmenting path 
+
 
 def Find_Max_Path(G,s,t):
 
-    vis = ['s']
+    vis = [s]
 
     table = dict()                               # Creating a dictionary of the graph with additional attributes 
     Weights = nx.get_edge_attributes(G,'weight') # Helpful having a dictionary of weights  
     for i in list(G.nodes):
         table[i] = [0,[]]
-    table['s'] = [inf,['s']]
+    table[s] = [inf,[s]]
 
-    while t not in vis:
+    while True:
 
       edges = []                            # list of all edges from vis_nodes ----> nodes 
       for i in vis:
@@ -82,8 +84,11 @@ def Find_Max_Path(G,s,t):
           w = Max_edge[1]
       
       table[w] = [min(table[v][0],Weights[v,w]),table[v][1]+[w]]
-
       vis.append(w)
+      print(table)
+
+      if table[t][0] != 0:
+        break
 
     return table[t]          # Returing [Capacity of path,[path]]
 
