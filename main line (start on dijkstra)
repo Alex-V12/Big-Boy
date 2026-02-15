@@ -25,7 +25,7 @@ for i, layer in enumerate(layers):
     for j, node in enumerate(layer):
         Pos[node] = (i,-j)
 
-nx.draw(G,Pos, with_labels=True,  arrows = 'True')
+nx.draw(G,Pos, with_labels=True,  arrows = True)
 
 
 # CHECKERS 
@@ -67,28 +67,42 @@ def Find_path(G,s,t):
         
     table['s'] = [inf,['s']]
         
+
     while vis != list(G.nodes):
         Max_node = [0,[None]]
         for i in vis:
             if Max_node[0] < table[i][0]:
-                Max_node = i 
+                Max_node = i
+        if Max_node[0] == 0:
+          break 
+
                 
         neighbours = list(G.neighbors(Max_node))
         for i in neighbours:
-            if min[Max_node[0],Weights[Max_node,i]] > table[i][0]:
-                table[i] = [min[Max_node[0],Weights[Max_node,i]],table[i][1].append(i)]
+            a = table[Max_node][0]
+            b = Weights[Max_node,i] 
+            print(a,b)
+            if min(table[Max_node][0],Weights[Max_node,i]) >= table[i][0]:
+                table[i] = [min(table[Max_node][0],Weights[Max_node,i]),table[i][1].append(i)]
         
         new_node = [0,[None]]        
         for i in un_vis:
-          if new_node[0] < table[i][0]:
-            new_node = i
+          print(new_node[0])
+          print(table[i][0])
+          if new_node[0] <= table[i][0]:
+            new_node = table[i]
             
         vis.append(new_node)
         un_vis.remove(new_node)
-    
-    
+
+            
 
 
-def Solve(G,s,t):
-    if is_input_correct(G,s,t) != "Input is correct" :
-        return is_input_correct(G,s,t)
+
+Find_path(G,'s','t')
+
+
+
+#def Solve(G,s,t):
+#    if is_input_correct(G,s,t) != "Input is correct" :
+#        return is_input_correct(G,s,t)
