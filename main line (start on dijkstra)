@@ -55,6 +55,7 @@ def is_input_correct(G,s,t):
 def Find_Max_Path(G,s,t):
 
     vis = [s]
+    checking_variable = None
 
     table = dict()                               # Creating a dictionary of the graph with additional attributes 
     Weights = nx.get_edge_attributes(G,'weight') # Helpful having a dictionary of weights  
@@ -62,15 +63,16 @@ def Find_Max_Path(G,s,t):
         table[i] = [0,[]]
     table[s] = [inf,[s]]
 
+    #while True:
     for n in range(len(list(G.nodes))):
-
       edges = []                            # list of all edges from vis_nodes ----> nodes 
-
       for i in vis:
         neighbours = list(G.neighbors(i))
         for j in neighbours:
           if j not in vis:
             edges += [[i,j]]
+            if edges == []:
+              return False
 
       cap = 0
       for i in edges:
@@ -82,23 +84,20 @@ def Find_Max_Path(G,s,t):
       
       table[w] = [min(table[v][0],Weights[v,w]),table[v][1]+[w]]
       vis.append(w)
+      #print(table)
 
       if table[t][0] != 0:
         return table[t]          # Returing [Capacity of path,[path]]
-    
-    return table    # When no augmenting path has been found 
+
+    return table    # When no augmenting path has been found  
 
 
 Find_Max_Path(G,'s','t')
 
 
 
-def Solve(G,Source,Sink):
-  s = Source
-  t = Sink
-  Max_Flow = 0
-
-  if is_input_correct(G,s,t) == None: 
-    if type(Find_Max_Path(G,s,t)) == dict:
-      return (Max_Flow,'nodes with non zero table[i][1]')
+#def Solve(G,Source,Sink):
+#  s = Source
+#  t = Sink
+#  is_input_correct(G,s,t)
   
