@@ -16,7 +16,7 @@ G.add_weighted_edges_from([
     ('s',1,16),('s',2,13),
     (1,3,12),(2,1,4),(2,4,14),(3,2,9),(4,3,7),
     (3,5,20),(4,5,4),(5,6,9),
-    (6,'t',20),(4,6,4),(5,'t',20)])
+    (6,'t',0),(4,6,4),(5,'t',0)])
 
 layers = [['s'],[1,2],[3,4],[5,6],['t']]
 Pos = {}
@@ -37,16 +37,13 @@ def is_input_correct(G,s,t):
         raise ValueError("Not a directed graph")
         
     if s not in list(G.nodes()):
-        raise ValueError("s Is not an element in V(G)")
+        raise ValueError("Source is not an element in V(G)")
         
     if t not in list(G.nodes()):
-        raise ValueError("t Is not an element in V(G)")   
+        raise ValueError("Sink is not an element in V(G)")   
         
     if t == s:
         raise ValueError("Source and Sink must be distinct") 
-        
-    if nx.is_weakly_connected(G) == False:
-        raise ValueError("G is not weakly connected")
     
     else:
         print("Input is correct")        
@@ -65,15 +62,15 @@ def Find_Max_Path(G,s,t):
         table[i] = [0,[]]
     table[s] = [inf,[s]]
 
-    while True:
+    for n in range(len(list(G.nodes))):
 
       edges = []                            # list of all edges from vis_nodes ----> nodes 
+
       for i in vis:
         neighbours = list(G.neighbors(i))
         for j in neighbours:
           if j not in vis:
             edges += [[i,j]]
-
 
       cap = 0
       for i in edges:
@@ -85,18 +82,23 @@ def Find_Max_Path(G,s,t):
       
       table[w] = [min(table[v][0],Weights[v,w]),table[v][1]+[w]]
       vis.append(w)
-      print(table)
 
       if table[t][0] != 0:
-        break
-
-    return table[t]          # Returing [Capacity of path,[path]]
+        return table[t]          # Returing [Capacity of path,[path]]
+    
+    return table    # When no augmenting path has been found 
 
 
 Find_Max_Path(G,'s','t')
 
 
 
-#def Solve(G,s,t):
-#    if is_input_correct(G,s,t) != "Input is correct" :
-#        return is_input_correct(G,s,t)
+def Solve(G,Source,Sink):
+  s = Source
+  t = Sink
+  Max_Flow = 0
+
+  if is_input_correct(G,s,t) == None: 
+    if type(Find_Max_Path(G,s,t)) == dict:
+      return (Max_Flow,'nodes with non zero table[i][1]')
+  
