@@ -16,7 +16,7 @@ G.add_weighted_edges_from([
     ('s',1,16),('s',2,13),
     (1,3,12),(2,1,4),(2,4,14),(3,2,9),(4,3,7),
     (3,5,20),(4,5,4),(5,6,9),
-    (6,'t',0),(4,6,4),(5,'t',0)])
+    (6,'t',20),(4,6,4),(5,'t',20)])
 
 layers = [['s'],[1,2],[3,4],[5,6],['t']]
 Pos = {}
@@ -46,7 +46,8 @@ def is_input_correct(G,s,t):
         raise ValueError("Source and Sink must be distinct") 
     
     else:
-        print("Input is correct")        
+        print("Input is correct")
+        return True        
 
 
 # Finding Augmenting path 
@@ -71,8 +72,6 @@ def Find_Max_Path(G,s,t):
         for j in neighbours:
           if j not in vis:
             edges += [[i,j]]
-            if edges == []:
-              return False
 
       cap = 0
       for i in edges:
@@ -84,7 +83,6 @@ def Find_Max_Path(G,s,t):
       
       table[w] = [min(table[v][0],Weights[v,w]),table[v][1]+[w]]
       vis.append(w)
-      #print(table)
 
       if table[t][0] != 0:
         return table[t]          # Returing [Capacity of path,[path]]
@@ -96,8 +94,26 @@ Find_Max_Path(G,'s','t')
 
 
 
-#def Solve(G,Source,Sink):
-#  s = Source
-#  t = Sink
-#  is_input_correct(G,s,t)
+def Find_Max_flow(G,Source,Sink):
+  Max_flow = 0
+  s = Source
+  t = Sink
+
+  print(is_input_correct(G,s,t))
+  if is_input_correct(G,s,t) != True:
+    return None
+  else:
+
+    if type(Find_Max_Path(G,s,t)) == dict:
+      Min_cut = []
+      for i in Find_Max_Path(G,s,t):
+        if Find_Max_Path(G,s,t)[i] != []:
+          Min_cut.append(i)
+      return [ Max_flow , Min_cut ]
+
+      if type(Find_Max_Path(G,s,t)) == list:
+        A_path = Find_Max_Path(G,s,t)
+        Max_flow += A_path[0]
+        
+    
   
