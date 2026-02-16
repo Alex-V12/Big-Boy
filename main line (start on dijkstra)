@@ -104,16 +104,19 @@ def Find_Max_flow(G,Source,Sink):
     return None
   else:
 
+    while type(Find_Max_Path(G,s,t)) == list:
+      A_path = Find_Max_Path(G,s,t)
+      Max_flow += A_path[0]
+      Weights = nx.get_edge_attributes(G,'weight')
+      for i in range(len(A_path[1])-1):
+        Weights[A_path[1][i],A_path[1][i+1]] -= A_path[0]
+       
+      
+
     if type(Find_Max_Path(G,s,t)) == dict:
       Min_cut = []
       for i in Find_Max_Path(G,s,t):
         if Find_Max_Path(G,s,t)[i] != []:
           Min_cut.append(i)
       return [ Max_flow , Min_cut ]
-
-      if type(Find_Max_Path(G,s,t)) == list:
-        A_path = Find_Max_Path(G,s,t)
-        Max_flow += A_path[0]
-        
-    
   
