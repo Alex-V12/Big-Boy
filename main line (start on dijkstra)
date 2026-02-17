@@ -89,6 +89,8 @@ def Find_Max_Path(G,s,t):
 
 
 def Find_Max_flow(G,Source,Sink):
+    
+  F = nx.DiGraph()    # Flow fraph   
   Max_flow = 0
   s = Source
   t = Sink
@@ -98,44 +100,38 @@ def Find_Max_flow(G,Source,Sink):
   else:
       
     R = G.copy()    # Residule Graph 
-    Weights = nx.get_edge_attributes(G,'weight')
-    print(Weights)
-    print(nx.get_edge_attributes(R,'weight'))
+    for (u,v) in G.edges():
+      R.add_edge(v,u,weight = 0) 
+
+    # Weights = nx.get_edge_attributes(G,'weight')
+    # print(Weights)
+    # print('cahnge')
+    # print(nx.get_edge_attributes(R,'weight'))
         
     
-    #while type(Find_Max_Path(R,s,t)) == list:
-    for i in range(2):
+    while type(Find_Max_Path(R,s,t)) == list:
+    #for i in range(2):
       A_path = Find_Max_Path(R,s,t)
       Max_flow += A_path[0]
-      
-      print(A_path)
-
           
+      
       for i in range(len(A_path[1])-1):
           v = A_path[1][i]
           w = A_path[1][i+1]
-          print(v)
-          print(w)
-          
-          if R[v][w]['weight'] > A_path[0]:
-              R[v][w]['weight'] -= A_path[0] 
+          R[v][w]['weight'] -= A_path[0] 
+          R[w][v]['weight'] += A_path[0]
+          F.add_edge(v,w,weight = A_path[0])    
               
-          if R[v][w]['weight'] == A_path:
-              R.remove_edge(v,w)
               
-          elif R[v][w]['weight'] < A_path[0]:
-              a = R[v][w]['weight'] 
-              R.remove_edge(v,w)
-              R.add_weighted_edges_from([(w,v,A_path[0] - a)])
-              
-      print(nx.get_edge_attributes(R,'weight'))
-      print(Max_flow)        
+      # print(nx.get_edge_attributes(R,'weight'))
+      # print(Max_flow)        
        
     if type(Find_Max_Path(R,s,t)) == dict:
       Min_cut = []
       for i in Find_Max_Path(R,s,t):
         if Find_Max_Path(R,s,t)[i][1] != []:
           Min_cut.append(i)
+      nx.draw(F,Pos, with_labels=True,  arrows = True)    
       return [ Max_flow , Min_cut ]
   
 
