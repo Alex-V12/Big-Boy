@@ -56,7 +56,6 @@ def is_input_correct(G,s,t):
 def Find_Max_Path(G,s,t):
 
     vis = [s]
-    checking_variable = None
 
     table = dict()                               # Creating a dictionary of the graph with additional attributes 
     Weights = nx.get_edge_attributes(G,'weight') # Helpful having a dictionary of weights  
@@ -64,7 +63,6 @@ def Find_Max_Path(G,s,t):
         table[i] = [0,[]]
     table[s] = [inf,[s]]
 
-    #while True:
     for n in range(len(list(G.nodes))):
       edges = []                            # list of all edges from vis_nodes ----> nodes 
       for i in vis:
@@ -90,33 +88,55 @@ def Find_Max_Path(G,s,t):
     return table    # When no augmenting path has been found  
 
 
-Find_Max_Path(G,'s','t')
-
-
-
 def Find_Max_flow(G,Source,Sink):
   Max_flow = 0
   s = Source
   t = Sink
-
-  print(is_input_correct(G,s,t))
+  
   if is_input_correct(G,s,t) != True:
     return None
   else:
-
-    while type(Find_Max_Path(G,s,t)) == list:
-      A_path = Find_Max_Path(G,s,t)
-      Max_flow += A_path[0]
-      Weights = nx.get_edge_attributes(G,'weight')
-      for i in range(len(A_path[1])-1):
-        Weights[A_path[1][i],A_path[1][i+1]] -= A_path[0]
-       
       
+    R = G.copy()    # Residule Graph 
+    Weights = nx.get_edge_attributes(G,'weight')
+    print(Weights)
+    print(nx.get_edge_attributes(R,'weight'))
+        
+    
+    #while type(Find_Max_Path(R,s,t)) == list:
+    for i in range(2):
+      A_path = Find_Max_Path(R,s,t)
+      Max_flow += A_path[0]
+      
+      print(A_path)
 
-    if type(Find_Max_Path(G,s,t)) == dict:
+          
+      for i in range(len(A_path[1])-1):
+          v = A_path[1][i]
+          w = A_path[1][i+1]
+          print(v)
+          print(w)
+          
+          if R[v][w]['weight'] > A_path[0]:
+              R[v][w]['weight'] -= A_path[0] 
+              
+          if R[v][w]['weight'] == A_path:
+              R.remove_edge(v,w)
+              
+          elif R[v][w]['weight'] < A_path[0]:
+              a = R[v][w]['weight'] 
+              R.remove_edge(v,w)
+              R.add_weighted_edges_from([(w,v,A_path[0] - a)])
+              
+      print(nx.get_edge_attributes(R,'weight'))
+      print(Max_flow)        
+       
+    if type(Find_Max_Path(R,s,t)) == dict:
       Min_cut = []
-      for i in Find_Max_Path(G,s,t):
-        if Find_Max_Path(G,s,t)[i] != []:
+      for i in Find_Max_Path(R,s,t):
+        if Find_Max_Path(R,s,t)[i][1] != []:
           Min_cut.append(i)
       return [ Max_flow , Min_cut ]
   
+
+Find_Max_flow(G,'s','t')
