@@ -16,7 +16,7 @@ G.add_weighted_edges_from([
     ('s',1,16),('s',2,13),
     (1,3,12),(2,1,4),(2,4,14),(3,2,9),(4,3,7),
     (3,5,20),(4,5,4),(5,6,9),
-    (6,'t',0),(4,6,4),(5,'t',0)])
+    (6,'t',20),(4,6,4),(5,'t',20)])
 
 layers = [['s'],[1,2],[3,4],[5,6],['t']]
 Pos = {}
@@ -25,7 +25,7 @@ for i, layer in enumerate(layers):
     for j, node in enumerate(layer):
         Pos[node] = (i,-j)
 
-nx.draw(G,Pos, with_labels=True,  arrows = True)
+#nx.draw(G,Pos, with_labels=True,  arrows = True)
 
 
 
@@ -46,7 +46,8 @@ def is_input_correct(G,s,t):
         raise ValueError("Source and Sink must be distinct") 
     
     else:
-        print("Input is correct")        
+        print("Input is correct")
+        return True        
 
 
 # Finding Augmenting path 
@@ -55,7 +56,6 @@ def is_input_correct(G,s,t):
 def Find_Max_Path(G,s,t):
 
     vis = [s]
-    checking_variable = None
 
     table = dict()                               # Creating a dictionary of the graph with additional attributes 
     Weights = nx.get_edge_attributes(G,'weight') # Helpful having a dictionary of weights  
@@ -63,7 +63,6 @@ def Find_Max_Path(G,s,t):
         table[i] = [0,[]]
     table[s] = [inf,[s]]
 
-    #while True:
     for n in range(len(list(G.nodes))):
       edges = []                            # list of all edges from vis_nodes ----> nodes 
       for i in vis:
@@ -71,8 +70,6 @@ def Find_Max_Path(G,s,t):
         for j in neighbours:
           if j not in vis:
             edges += [[i,j]]
-            if edges == []:
-              return False
 
       cap = 0
       for i in edges:
@@ -84,7 +81,6 @@ def Find_Max_Path(G,s,t):
       
       table[w] = [min(table[v][0],Weights[v,w]),table[v][1]+[w]]
       vis.append(w)
-      #print(table)
 
       if table[t][0] != 0:
         return table[t]          # Returing [Capacity of path,[path]]
@@ -92,12 +88,84 @@ def Find_Max_Path(G,s,t):
     return table    # When no augmenting path has been found  
 
 
-Find_Max_Path(G,'s','t')
-
-
-
-#def Solve(G,Source,Sink):
-#  s = Source
-#  t = Sink
-#  is_input_correct(G,s,t)
+def FMF_ele(G,s,t):
+    
+  F = nx.DiGraph()    # Flow fraph   
+  Max_flow = 0
   
+#  if is_input_correct(G,s,t) != True:
+#    return None
+#  else:
+      
+  R = G.copy()    # Residule Graph 
+  for (u,v) in G.edges():
+        R.add_edge(v,u,weight = 0) 
+
+  while type(Find_Max_Path(R,s,t)) == list:
+      A_path = Find_Max_Path(R,s,t)
+      Max_flow += A_path[0]
+          
+      for i in range(len(A_path[1])-1):
+          v = A_path[1][i]
+          w = A_path[1][i+1]
+          R[v][w]['weight'] -= A_path[0] 
+          R[w][v]['weight'] += A_path[0]
+          F.add_edge(v,w,weight = A_path[0])    
+       
+  if type(Find_Max_Path(R,s,t)) == dict:
+      Min_cut = []
+      for i in Find_Max_Path(R,s,t):
+        if Find_Max_Path(R,s,t)[i][1] != []:
+          Min_cut.append(i)
+#      nx.draw(F,Pos, with_labels=True,  arrows = True)    
+      return [ Max_flow , Min_cut ]
+  
+
+def FMF_set(G,s,t):
+
+    G.add_nodes_from(['S','T'])
+    edges = []
+    for i in s:
+        edges.append(('S',i,inf))
+    for j in t:
+        edges.append((j,'T',inf))
+        
+    G.add_weighted_edges_from(edges)
+    
+    return FMF_ele(G,'S','T')
+  
+
+def Max_flow(G,s,t):                      
+  if isinstance(s,list) or isinstance(t,list):
+    if type(s) == list:
+      s = set(s)
+    if type(t) == list:
+      t = set(t)
+  if isinstance(s,set) or isinstance(t,set):
+    if type(s) == int:
+      s = set(s)
+    if type(t) == int:
+      t = set(t)
+    return FMF_set(G,s,t)
+
+  return FMF_ele(G,s,t)
+
+
+def Find_cut(G,Return):
+  edges = list(G.edges())
+  Min_cut=[]
+  for i in edges:  
+    if i[0] in Return[1] and i[1] not in Return[1]:
+      Min_cut.append(i)
+  return Min_cut
+
+def Find_BN(G,Return):
+  1_st_attement = Max_flow(G,)
+  for i in Find_cut(G,Return):
+    i+=(inf,)
+    G.add_weighted_edges_from([i])
+  Weights = nx.get_edge_attributes(G,'weight')
+
+#Find_BN(G,FMF_ele(G,'s','t')) 
+
+
