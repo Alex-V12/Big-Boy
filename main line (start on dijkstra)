@@ -25,7 +25,7 @@ for i, layer in enumerate(layers):
     for j, node in enumerate(layer):
         Pos[node] = (i,-j)
 
-#nx.draw(G,Pos, with_labels=True,  arrows = True)
+nx.draw(G,Pos, with_labels=True,  arrows = True)
 
 
 
@@ -78,7 +78,6 @@ def Find_Max_Path(G,s,t):
           Max_edge = i
           v = Max_edge[0]
           w = Max_edge[1]
-      
       table[w] = [min(table[v][0],Weights[v,w]),table[v][1]+[w]]
       vis.append(w)
 
@@ -135,7 +134,8 @@ def FMF_set(G,s,t):
     return FMF_ele(G,'S','T')
   
 
-def Max_flow(G,s,t):                      
+def Max_flow(G,s,t):
+
   if isinstance(s,list) or isinstance(t,list):
     if type(s) == list:
       s = set(s)
@@ -159,13 +159,25 @@ def Find_cut(G,Return):
       Min_cut.append(i)
   return Min_cut
 
-def Find_BN(G,Return):
-  1_st_attement = Max_flow(G,)
-  for i in Find_cut(G,Return):
+def Find_BN(G,s,t):
+  R = G.copy()
+  attempt_1 = Max_flow(G,s,t)
+  min_cut = Find_cut(G,attempt_1)
+  for i in min_cut:
     i+=(inf,)
-    G.add_weighted_edges_from([i])
-  Weights = nx.get_edge_attributes(G,'weight')
+    R.add_weighted_edges_from([i])
+  Weights = nx.get_edge_attributes(R,'weight')
+  attempt_2 = Max_flow(R,s,t)
+  return (min_cut,attempt_2[0]-attempt_1[0])
 
-#Find_BN(G,FMF_ele(G,'s','t')) 
+def Solve(G,Source,Sink):
+  s = Source
+  t = Sink
+  is_input_correct(G,s,t)
+  return Find_BN(G,s,t)
 
+#Max_flow(G,1,'t')
 
+FMF_ele(G,4,'t')
+
+#Solve(G,'s','t')
