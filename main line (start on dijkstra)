@@ -16,25 +16,32 @@ def is_input_correct(G,s,t):
 
     if isinstance(G,nx.DiGraph) == False:
         raise ValueError("Not a directed graph")
+        
+        # Single source and sink 
+        
+    if type(s) != set and type(s) != list and s not in list(G.nodes()):
+            raise ValueError("Source is not an element in V(G)")
 
+    if type(t) != set and type(t) != list and t not in list(G.nodes()):
+            raise ValueError("Sink is not an element in V(G)")
+            
     if t == s:
-        raise ValueError("Source and Sink must be distinct")
-
-    if type(s)== int and s not in list(G.nodes()):
-        raise ValueError("Source is not an element in V(G)")
-
-    if type(t)== int and t not in list(G.nodes()):
-        raise ValueError("Sink is not an element in V(G)")
+        raise ValueError("Source and Sink must be distinct") 
+        
+    # multiple sources and sinks 
 
     if type(s) == list or type(t) == list or type(s) == set or type(t) == set:
 
       for i in s:
         if i not in list(G.nodes()):
           raise ValueError("Element in Source is not an element in V(G)")
+        if i in t:
+          raise ValueError("Source and Sink must not share elements")   
 
       for j in t:
         if j not in list(G.nodes()):
           raise ValueError("Element in Sink is not an element in V(G)")
+            
 
     else:
         print("Input is correct")
@@ -206,39 +213,43 @@ def Find_BN(G,s,t):
       R[i[0]][i[1]]['weight'] -= Flow[i[0]][i[1]]['weight']
  
   attempt_2 = Max_flow(R,s,t)
-
+  
+  # improvments = [attempt_1[0],{}]
+  # for edge in min_cut:
+  #     if edge in list(attempt_2[2].keys()):
+  #         improvments[1][edge] = attempt_2[2][edge]
+  # return improvments        
+  
+    
   Inc_flow = nx.DiGraph()
   for i in attempt_2[2]:
-    Inc_flow.add_weighted_edges_from([i+(attempt_2[2][i],)])
-
+     Inc_flow.add_weighted_edges_from([i+(attempt_2[2][i],)])
+  
   Improvments = [{attempt_1[0]}]
+  
   while isinstance(Find_Max_Path(Inc_flow,s,t), list):
-    result = Find_Max_Path(Inc_flow,s,t)
+     result = Find_Max_Path(Inc_flow,s,t)
     
-    A = set()
-    for i in range(len(result[1])-1):
-      v = result[1][i]
-      w = result[1][i+1]
-      if (v,w) in min_cut:
-        A.add((v,w))
-      if Inc_flow[v][w] == result[0]:
-        Inc_flow.remove_edge(v,w)
-      else:
-        Inc_flow[v][w]['weight'] -= result[0]
-    A.add(result[0])
-    Improvments.append(A)
+     A = set()
+     for i in range(len(result[1])-1):
+       v = result[1][i]
+       w = result[1][i+1]
+       if (v,w) in min_cut:
+         A.add((v,w))
+       if Inc_flow[v][w] == result[0]:
+         Inc_flow.remove_edge(v,w)
+       else:
+         Inc_flow[v][w]['weight'] -= result[0]
+     A.add(result[0])
+     Improvments.append(A)
   return Improvments
 
 
 # Combining checkers and solvers into one function  
 
 def Solve(G,Source,Sink):
-  s = Source
-  t = Sink
-  is_input_correct(G,s,t)
-  return Find_BN(G,s,t)
-
-
+  is_input_correct(G,Source,Sink)
+  return Find_BN(G,Source,Sink)
 
 
 
@@ -273,19 +284,24 @@ H = nx.DiGraph()
 
 edges = [
 ('s','a',9), ('s','e',8), ('s','i',7), ('s','m',3),
+
 ('a','b',2), ('a','n',6),
 ('b','e',4), ('b','g',3), ('b','c',6),
 ('e','f',6),
-('i','f',2), ('i','j',3),
-('m','j',2), ('m','n',4),
+('i','f',2), ('i','j',2+3),
+('m','j',2+1), ('m','n',4),
+
 ('f','c',6), ('f','g',1), ('f','k',3),
 ('j','g',4), ('j','k',5), ('j','o',6),
-('n','k',1), ('n','o',4),
+('n','k',1), ('n','o',3+3),
+
 ('c','d',2), ('c','h',4),
 ('g','h',6), ('g','l',8),
 ('k','l',1), ('k','p',1),
 ('o','d',6), ('o','p',4),
-('d','t',7), ('h','t',3), ('l','t',7), ('p','t',6)]
+
+('d','t',7), ('h','t',2+3), ('l','t',7), ('p','t',6)
+]
 
 H.add_weighted_edges_from(edges)
 
