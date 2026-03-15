@@ -4,96 +4,81 @@ Spyder Editor
 
 This is a temporary script file.
 """
-
 import networkx as nx
-import numpy as np
 import matplotlib.pyplot as plt
 inf = float('inf')
 
-G = nx.DiGraph()
-G.add_weighted_edges_from([
-    ('s',1,16),('s',2,13),
-    (1,3,12),(2,1,4),(2,4,14),(3,2,9),(4,3,7),
-    (3,5,20),(4,5,4),(5,6,9),
-    (6,'t',20),(4,6,4),(5,'t',20)])
 
-layers = [[None,'s',None],[1,None,2],[3,None,4],[5,None,6],[None,'t',None]]
-Pos = {} 
-for i, layer in enumerate(layers):
-    n = len(layers)
-    for j, node in enumerate(layer):
-        Pos[node] = (i,-j)
-
-edge_labels = nx.get_edge_attributes(G,'weight')
-
-
-nx.draw(G, Pos, with_labels=True, node_size=700, node_color='lightblue', arrows=True)
-nx.draw_networkx_edge_labels(G, Pos, edge_labels=edge_labels)
-
-plt.show()
-
-
-# CHECKERS 
+# CHECKERS
 
 def is_input_correct(G,s,t):
-    
+
     if isinstance(G,nx.DiGraph) == False:
         raise ValueError("Not a directed graph")
+        
+        # Single source and sink 
+        
+    if type(s) != set and type(s) != list and s not in list(G.nodes()):
+            raise ValueError("Source is not an element in V(G)")
 
-
+    if type(t) != set and type(t) != list and t not in list(G.nodes()):
+            raise ValueError("Sink is not an element in V(G)")
+            
     if t == s:
         raise ValueError("Source and Sink must be distinct") 
-  
-    if type(s)== int and s not in list(G.nodes()):
-        raise ValueError("Source is not an element in V(G)")
         
-    if type(t)== int and t not in list(G.nodes()):
-        raise ValueError("Sink is not an element in V(G)")   
+    # multiple sources and sinks 
 
     if type(s) == list or type(t) == list or type(s) == set or type(t) == set:
 
       for i in s:
         if i not in list(G.nodes()):
           raise ValueError("Element in Source is not an element in V(G)")
+        if type(t) == list or type(t) == set:  
+            if i in t:
+              raise ValueError("Source and Sink must not share elements")   
+        else:
+            if i == t:
+                raise ValueError("Source and Sink must not share elements")
 
       for j in t:
         if j not in list(G.nodes()):
           raise ValueError("Element in Sink is not an element in V(G)")
-    
+
     else:
         print("Input is correct")
-        return True        
+        return True
 
 
-# Finding Augmenting path 
+# Finding Augmenting path (Greedy algorithm)
 
 
 def Find_Max_Path(G,s,t):
 
     vis = [s]
 
-    table = dict()                               # Creating a dictionary of the graph with additional attributes 
-    Weights = nx.get_edge_attributes(G,'weight') # Helpful having a dictionary of weights  
+    table = dict()                               # Creating a dictionary of the graph 
+    Weights = nx.get_edge_attributes(G,'weight') # Helpful having a dictionary of weights
     for i in list(G.nodes):
         table[i] = [0,[]]
-    table[s] = [inf,[s]]
+    table[s] = [inf,[s]]                         # Starts with an theoretical infinite source  
 
     for n in range(len(list(G.nodes))):
-      edges = []                            # list of all edges from vis_nodes ----> nodes 
+      edges = []                            # list of all edges from vis_nodes ----> nodes
       for i in vis:
         neighbours = list(G.neighbors(i))
         for j in neighbours:
           if j not in vis:
             edges += [[i,j]]
-        
 
-      cap = 0
+
+      cap = 0                 # variable for the Maximum flow to the node from the source 
       for i in edges:
         if cap < Weights[i[0],i[1]]:
           cap = Weights[i[0],i[1]]
           Max_edge = i
       if cap == 0:
-        break 
+        break
       v = Max_edge[0]
       w = Max_edge[1]
       table[w] = [min(table[v][0],Weights[(v,w)]),table[v][1]+[w]]
@@ -102,61 +87,68 @@ def Find_Max_Path(G,s,t):
       if table[t][0] != 0:
         return table[t]          # Returing [Capacity of path,[path]]
 
-    return table    # When no augmenting path has been found  
+    return table    # When no augmenting path has been found
 
+
+# Finding Max flow in the case where s and t are elemnts or single nodes 
 
 def FMF_ele(G,s,t):
-    
-  F = {}          # Flow Graph   
-  Max_flow = 0
-      
-  R = G.copy()    # Residule Graph 
-  for (u,v) in G.edges():
-        R.add_edge(v,u,weight = 0) 
 
-  while type(Find_Max_Path(R,s,t)) == list:
+  Flow = {}          # Flow Graph in the dictionary format  
+  Max_flow = 0
+
+  R = G.copy()    # Residule Graph (copy of the original capacity graph with 'backward' flow alowed)
+  for (u,v) in G.edges():
+        R.add_edge(v,u,weight = 0)
+
+  while type(Find_Max_Path(R,s,t)) == list:         # Making sure that there exists a augmenting path 
       A_path = Find_Max_Path(R,s,t)
       Max_flow += A_path[0]
-          
+
       for i in range(len(A_path[1])-1):
           v = A_path[1][i]
           w = A_path[1][i+1]
-          R[v][w]['weight'] -= A_path[0]      # Residual Graph 
+          R[v][w]['weight'] -= A_path[0]      # Residual Graph
           R[w][v]['weight'] += A_path[0]
 
-          if (v,w) not in F:
-            F[(v,w)] = A_path[0]
-          elif (v,w) in F:                      # Flow Graph 
-            F[(v,w)] += A_path[0]
-          if (w,v) in F:
-            if F[(w,v)] > A_path[0]:
-              F[(w,v)] -= A_path[0]
-            elif F[(w,v)] < A_path[0]:
-              F[(v,w)] = A_path[0] - F[(w,v)]
-              del F[(w,v)]
-            if F[(w,v)] == A_path[0]:
-              del F[(w,v)]
-       
-  if type(Find_Max_Path(R,s,t)) == dict:
-      partition = []
-      for i in Find_Max_Path(R,s,t):
-        if Find_Max_Path(R,s,t)[i][1] != []:
-          partition.append(i)     
-      return [ Max_flow , partition , F ]
-  
+          if (v,w) not in Flow:                  # Flow Graph (Adding flow in such a way to comply with flow constraints)
+            Flow[(v,w)] = A_path[0]
+          elif (v,w) in Flow:                      
+            Flow[(v,w)] += A_path[0]
+          if (w,v) in Flow:
+            if Flow[(w,v)] > A_path[0]:
+              Flow[(w,v)] -= A_path[0]
+            elif Flow[(w,v)] < A_path[0]:
+              Flow[(v,w)] = A_path[0] - Flow[(w,v)]
+              del Flow[(w,v)]
+            if Flow[(w,v)] == A_path[0]:
+              del Flow[(w,v)]
+
+  if type(Find_Max_Path(R,s,t)) == dict:    # When no augmenting path can be found 
+      partition = []                        # partitions the set into reachable nodes (Used for min cut)
+      for node in Find_Max_Path(R,s,t):
+        if Find_Max_Path(R,s,t)[node][1] != []:
+          partition.append(node)
+      return [ Max_flow , partition , Flow ]
+
+
+# Finding Max flow in the case where s and t are sets/lists or a multi node flow 
 
 def FMF_set(G,s,t):
-
-    G.add_nodes_from(['S','T'])
+    R = G.copy()
+    
+    R.add_nodes_from(['S','T'])
     edges = []
     for i in s:
         edges.append(('S',i,inf))
     for j in t:
         edges.append((j,'T',inf))
-        
-    G.add_weighted_edges_from(edges)
-    return FMF_ele(G,'S','T')
-  
+
+    R.add_weighted_edges_from(edges)
+    return FMF_ele(R,'S','T')
+
+
+# A single function to handle all input sources and sinks 
 
 def Max_flow(G,s,t):
 
@@ -175,56 +167,182 @@ def Max_flow(G,s,t):
   return FMF_ele(G,s,t)
 
 
+# Finding the Min cut of a flow 
+
 def Find_cut(G,Return):
+    
   edges = list(G.edges())
-  Min_cut=[]
-  for i in edges:  
+  Min_cut= set()
+  for i in edges:
     if i[0] in Return[1] and i[1] not in Return[1]:
-      Min_cut.append(i)
+      Min_cut.add(i)
+      
   return Min_cut
 
-def Find_BN(G,s,t):
-  R = G.copy()
 
+# Finding bottle necks and the lower bound of the increase in flow through them 
+
+def Find_BN(G,s,t):
+
+  R = G.copy()
   attempt_1 = Max_flow(G,s,t)
+
   Flow = nx.DiGraph()
   for i in attempt_1[2]:
-    Flow.add_weighted_edges_from([i+(attempt_1[2][i],)]) 
+    Flow.add_weighted_edges_from([i+(attempt_1[2][i],)])
 
-  min_cut = Find_cut(G,attempt_1)
-  for i in min_cut:
-    i+=(inf,)
-    R.add_weighted_edges_from([i])
-  Weights = nx.get_edge_attributes(R,'weight')
+
+  if 'S' in list(Flow.nodes()):   # Turning a singler source graph into a multi source graph (if required )
+
+    R.add_nodes_from(['S','T'])
+    edges = []
+    for i in s:
+      edges.append(('S',i,inf))
+    for j in t:
+      edges.append((j,'T',inf))
+    R.add_weighted_edges_from(edges)  
+
+    s = 'S'
+    t = 'T'
+
+  # min_cut = Find_cut(G,attempt_1)
+  # for i in min_cut:
+  #   i+=(inf,)
+  #   R.add_weighted_edges_from([i])
+    
+  Bottle_necks = []  
+  for i in list(R.edges()):
+    if i in list(Flow.edges()):
+        if R[i[0]][i[1]]['weight'] == Flow[i[0]][i[1]]['weight']:
+            Bottle_necks.append(i)
+            i+=(inf,)
+            R.add_weighted_edges_from([i])    
 
 
   for i in list(R.edges()):
     if i in list(Flow.edges()):
-      R[i[0]][i[1]]['weight'] -= Flow[i[0]][i[1]]['weight'] 
-
-
+      R[i[0]][i[1]]['weight'] -= Flow[i[0]][i[1]]['weight']
+ 
   attempt_2 = Max_flow(R,s,t)
-
+  
+  # improvments = [attempt_1[0],{}]
+  # for edge in min_cut:
+  #     if edge in list(attempt_2[2].keys()):
+  #         improvments[1][edge] = attempt_2[2][edge]
+  # return improvments        
+  
+    
   Inc_flow = nx.DiGraph()
   for i in attempt_2[2]:
-    Inc_flow.add_weighted_edges_from([i+(attempt_2[2][i],)])
-  print(nx.get_edge_attributes(Inc_flow,'weight'))
+     Inc_flow.add_weighted_edges_from([i+(attempt_2[2][i],)])
+  
+  Improvments = [{attempt_1[0]}]
+  
+  while isinstance(Find_Max_Path(Inc_flow,s,t), list):
+     result = Find_Max_Path(Inc_flow,s,t)
+    
+     A = set()
+     for i in range(len(result[1])-1):
+       v = result[1][i]
+       w = result[1][i+1]
+       if (v,w) in Bottle_necks:
+         A.add((v,w))
+       if Inc_flow[v][w] == result[0]:
+         Inc_flow.remove_edge(v,w)
+       else:
+         Inc_flow[v][w]['weight'] -= result[0]
+         
+     A.add(result[0])
+     Improvments.append(A)     
+         
+     # if len(Improvments) == 1:               # Trying to remove duplicates  
+     #     A.add(result[0])
+     #     Improvments.append(A)
+         
+     # else:
+     #     for i in range(len(Improvments)-1):
+     #         for j in Improvments[i+1]:
+     #             print(j)
+     #             if A in j and (len(A)+1) == len(j):
+     #                 for k in range(len(Improvments[j])):
+     #                     if isinstance(Improvments[j][k],int):
+     #                         Improvments[j][k] += result[0]
+                             
+     
+  return Improvments
 
-  Improvments = []
-  :
 
-
-
-
-  return (1)
+# Combining checkers and solvers into one function  
 
 def Solve(G,Source,Sink):
-  s = Source
-  t = Sink
-  is_input_correct(G,s,t)
-  return Find_BN(G,s,t)
+  is_input_correct(G,Source,Sink)
+  return Find_BN(G,Source,Sink)
 
 
 
 
-Find_BN(G,'s','t')
+
+G = nx.DiGraph()
+G.add_weighted_edges_from([
+    ('s',1,16+1+15),('s',2,13+6+5+6),
+    (1,3,12+1+7+1+15),(2,1,4+6),(2,4,14+6+15),(3,2,9),(4,3,7),
+    (3,5,20+7),(4,5,4+5+1+15),(5,6,9+1),
+    (6,'t',20),(4,6,4+6),(5,'t',20+7+12)])
+
+layers = [[None,'s',None],[1,None,2],[3,None,4],[5,None,6],[None,'t',None]]
+Pos = {}
+for i, layer in enumerate(layers):
+    n = len(layers)
+    for j, node in enumerate(layer):
+        Pos[node] = (i,-j)
+
+edge_labels = nx.get_edge_attributes(G,'weight')
+
+
+nx.draw(G, Pos, with_labels=True, node_size=700, node_color='lightblue', arrows=True)
+nx.draw_networkx_edge_labels(G, Pos, edge_labels=edge_labels)
+
+plt.show()
+
+
+
+
+H = nx.DiGraph()
+
+edges = [
+('s','a',9), ('s','e',8), ('s','i',7), ('s','m',3),
+
+('a','b',2), ('a','n',6),
+('b','e',4), ('b','g',3), ('b','c',6),
+('e','f',6),
+('i','f',2), ('i','j',2),
+('m','j',2), ('m','n',4),
+
+('f','c',6), ('f','g',1), ('f','k',3),
+('j','g',4), ('j','k',5), ('j','o',6),
+('n','k',1), ('n','o',3),
+
+('c','d',2), ('c','h',4),
+('g','h',6), ('g','l',8),
+('k','l',1), ('k','p',1),
+('o','d',6), ('o','p',4),
+
+('d','t',7), ('h','t',2), ('l','t',7), ('p','t',6)
+]
+
+H.add_weighted_edges_from(edges)
+
+layers = [[None,'s',None,None],['a','e','i','m',None],['b','f','j','n',None],['c','g','k','o',None],['d','h','l','p',None],[None,'t',None,None]]
+Pos = {}
+for i, layer in enumerate(layers):
+    n = len(layers)
+    for j, node in enumerate(layer):
+        Pos[node] = (i,-j)
+
+edge_labels = nx.get_edge_attributes(H,'weight')
+
+
+nx.draw(H, Pos, with_labels=True, node_size=700, node_color='lightblue', arrows=True)
+nx.draw_networkx_edge_labels(H, Pos, edge_labels=edge_labels)
+
+plt.show()
