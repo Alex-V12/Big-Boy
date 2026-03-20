@@ -19,3 +19,8 @@ A list with 2 objects: 1st being the max flow of the origonal networks, 2nd bein
 Input is Max_flow(Network,Source,Sink) returning 3 objects:
 
  [v max flow value , set of nodes (Network partition) , dictionary of the flow network]
+
+ ## Once run:
+Two Networks will appear, G and H, H being more complicated. These are found at the bottom and are examples of the different networks the solver will accept.
+!! When using G or H nodes s and t are stored as strings 's' and 't'!! you must use the syntax Solve(H,'s','t') 
+
