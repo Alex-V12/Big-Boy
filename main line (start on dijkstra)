@@ -108,7 +108,7 @@ def FMF_ele(G,s,t):
       for i in range(len(A_path[1])-1):
           v = A_path[1][i]
           w = A_path[1][i+1]
-          R[v][w]['weight'] -= A_path[0]      # Residual Graph
+          R[v][w]['weight'] -= A_path[0]      # Residual Network
           R[w][v]['weight'] += A_path[0]
 
           if (v,w) not in Flow:                  # Flow Graph (Adding flow in such a way to comply with flow constraints)
