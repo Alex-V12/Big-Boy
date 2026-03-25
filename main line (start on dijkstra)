@@ -309,19 +309,20 @@ def Solve_single(G,Source,Sink):
     s = 'S'
     t = 'T'
 
-  for i in list(R.edges()):
+# Creating the network of unused capacities.
+  for i in list(R.edges()):        
     if i in list(Flow.edges()):
       R[i[0]][i[1]]['weight'] -= Flow[i[0]][i[1]]['weight']
     
   Improvements = [{attempt_1[0]}]  
   for i in list(R.edges()):
     if i in list(Flow.edges()):
-        if R[i[0]][i[1]]['weight'] == 0:
+        if R[i[0]][i[1]]['weight'] == 0:  # The definition of a bottleneck
             i+=(inf,)
             R.add_weighted_edges_from([i])
             attempt_2 = Max_flow(R,'s','t')
             Improvements.append({attempt_2[0],i})
-            R.remove_edge(i[0],i[1])
+            R.remove_edge(i[0],i[1])      # As we are looking at the improvment given by this single edge we delete the edge after looking at it  
   return Improvements
 
 
