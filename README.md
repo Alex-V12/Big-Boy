@@ -1,6 +1,6 @@
 # Bottlenecks
 
-This program finds edges in a network such that if the capacity of these edges increases so does the maximum flow. 
+This program finds edges in a network such that, if the capacity of these edges increases so does the maximum flow. 
 
 ## Libraries used:
 
