@@ -21,6 +21,6 @@ Input is Max_flow(Network,Source,Sink) returning 3 objects:
  [v max flow value , set of nodes (Network partition) , dictionary of the flow network]
 
  ## Once run:
-Two Networks will appear, G and H, H being more complicated. These are found at the bottom and are examples of the different networks the solver will accept.
+Two Networks will appear, Break and H, H being more complicated. These are found at the bottom and are examples of the different networks the solvers will accept.
 **!! When using Breaker or H nodes s and t are stored as strings 's' and 't'!! you must use the syntax Solve_multi(H,'s','t')** 
 
